@@ -1,0 +1,82 @@
+2 Answer:
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy import percentile
+from sklearn.utils import resample
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.utils import resample
+seed = 42# Set seed for reproducibility
+data = pd.read_csv("diabetes.csv")
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# a) Sample statistics vs population statistics
+sample = data.sample(25, random_state=seed)# Sample 25 observations
+# Population and sample mean and max glucose
+population_mean_glucose = data["Glucose"].mean()
+population_max_glucose = data["Glucose"].max()
+sample_mean_glucose = sample["Glucose"].mean()
+sample_max_glucose = sample["Glucose"].max()
+fig, ax1 = plt.subplots(figsize=(5, 3))
+ax2 = ax1.twinx()
+x = ["Population", "Sample"]
+y1 = [population_mean_glucose, sample_mean_glucose]
+y2 = [population_max_glucose, sample_max_glucose]
+ax1.bar(x, y1, label="Mean Glucose")
+ax2.bar(x, y2, label="Max Glucose", color="red")
+ax1.set_ylabel("Mean Glucose")
+ax2.set_ylabel("Max Glucose")
+ax1.set_xlabel("Dataset")
+plt.title("Mean and Max Glucose Comparison (Population vs Sample)")
+plt.xticks(rotation=0)
+lines1, labels1 = ax1.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+plt.legend(lines1 + lines2, labels1 + labels2, loc="upper left")
+plt.show()
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# b) Sample vs population 98th percentile BMI
+sample_98th_bmi = percentile(sample["BMI"], 98)
+population_98th_bmi = percentile(data["BMI"], 98)
+plt.figure(figsize=(4, 3))
+plt.bar(["Population", "Sample"], [population_98th_bmi, sample_98th_bmi])
+plt.xlabel("Dataset")
+plt.ylabel("98th Percentile BMI")
+plt.title("98th Percentile BMI Comparison (Population vs Sample)")
+plt.xticks(rotation=0)
+plt.show()
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# c) Bootstrap analysis for Blood Pressure
+bootstrap_samples = [resample(data, replace=True, n_samples=len(data), random_state=seed) for _ in range(500)]
+bootstrap_means = [sample["BloodPressure"].mean() for sample in bootstrap_samples]
+bootstrap_stds = [sample["BloodPressure"].std() for sample in bootstrap_samples]
+bootstrap_percentiles = [percentile(sample["BloodPressure"], 95) for sample in bootstrap_samples]
+population_mean_bp = data["BloodPressure"].mean()
+population_std_bp = data["BloodPressure"].std()
+population_percentile_bp = percentile(data["BloodPressure"], 95)
+plt.figure(figsize=(12, 5))
+plt.subplot(1, 2, 1)
+plt.hist(bootstrap_means, bins=30, label="Bootstrap Mean")
+plt.axvline(population_mean_bp, color="red", linestyle="dashed", label="Population Mean")
+plt.xlabel("Blood Pressure Mean")
+plt.ylabel("Frequency")
+plt.title("Distribution of Bootstrap Mean vs Population Mean (Blood Pressure)")
+plt.legend()
+plt.subplot(1, 2, 2)
+plt.hist(bootstrap_stds, bins=30, label="Bootstrap Std Dev")
+plt.axvline(population_std_bp, color="red", linestyle="dashed", label="Population Std Dev")
+plt.xlabel("Blood Pressure Std Dev")
+plt.ylabel("Frequency")
+plt.title("Distribution of Bootstrap Std Dev vs Population Std Dev (Blood Pressure)")
+plt.legend()
+plt.tight_layout()
+plt.show()
+plt.figure(figsize=(8, 5))
+plt.plot(range(len(bootstrap_percentiles)), bootstrap_percentiles, label="Bootstrap Percentile")
+plt.axhline(population_percentile_bp, color="violet")
+plt.xlabel("Bootstrap Sample")
+plt.ylabel("95th Percentile")
+plt.title("Bootstrap 95th Percentile vs Population 95th Percentile (Blood Pressure)")
+plt.legend()
+plt.show()
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
