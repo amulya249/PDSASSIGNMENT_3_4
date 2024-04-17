@@ -1,0 +1,52 @@
+!pip
+
+pip install requests
+
+import requests
+url = "https://zillow-com1.p.rapidapi.com/property"
+querystring = {"zpid":"2080998891"}
+headers = {
+    "X-RapidAPI-Key": "1342981e3emshc7a5f249e891318p1a214fjsn76e638f920ee",
+    "X-RapidAPI-Host": "zillow-com1.p.rapidapi.com"
+}
+response = requests.get(url, headers=headers, params=querystring)
+print(response.json())
+----------------------------------------------
+import dash
+from dash import html, dcc, Input, Output, Dash
+import requests
+# Initialize Dash app
+app = dash.Dash(__name__)
+# Set up layout
+app.layout = html.Div([
+    html.H1("Zillow Property Data"),
+    dcc.Loading(id="loading", children=[html.Div(id="output")])
+])
+# Callback to fetch and display data
+@app.callback(
+    Output("output", "children"),
+    [Input("loading", "loading_state")]
+)
+def update_output(loading):
+    url = "https://zillow-com1.p.rapidapi.com/property"
+    querystring = {"zpid": "2080998891"}
+    headers = {
+        "X-RapidAPI-Key": "1342981e3emshc7a5f249e891318p1a214fjsn76e638f920ee",
+        "X-RapidAPI-Host": "zillow-com1.p.rapidapi.com"
+    }
+    try:
+        response = requests.get(url, headers=headers, params=querystring)
+        response.raise_for_status()
+        data = response.json()
+        property_info = html.Div([
+            html.H2("Property Information"),
+            html.P(f"Address: {data['address']}"),
+            html.P(f"Price: {data['price']}")
+        ])        
+        return property_info    
+    except requests.exceptions.RequestException as e:
+        return html.Div(f"Error fetching data: {e}")
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8051)
+-------------------------------------------------------------------------------------------------------------------
+    
